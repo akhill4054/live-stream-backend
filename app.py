@@ -1,5 +1,6 @@
+import base64
+import json
 import os
-from os import environ
 
 import firebase_admin
 from firebase_admin import credentials
@@ -7,8 +8,9 @@ from flask import Flask
 
 
 # Init firebase-admin.
-cred = credentials.Certificate(environ["GOOGLE_APPLICATION_CREDENTIALS"])
-default_app = firebase_admin.initialize_app(cred)
+firebase_app_credential = credentials.Certificate(json.loads(base64.b64decode(os.environ["GOOGLE_APPLICATION_CREDS_BASE64"])))
+default_app = firebase_admin.initialize_app(credential=firebase_app_credential)
+
 
 # create and configure the app
 app = Flask(__name__, instance_relative_config=True)
