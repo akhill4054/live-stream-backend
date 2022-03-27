@@ -1,1 +1,1 @@
-web: gunicorn faskr:app
+web: gunicorn app:app
