@@ -25,10 +25,12 @@ def create_app(test_config=None):
         pass
 
     # Import and register blueprints
+    from index.v1.views import index_bp
     from auth.v1.views import auth_bp
     from users.v1.views import users_bp
     from streamings.v1.views import streamins_bp
 
+    app.register_blueprint(index_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(users_bp)
     app.register_blueprint(streamins_bp)

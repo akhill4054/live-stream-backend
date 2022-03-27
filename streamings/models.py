@@ -35,7 +35,7 @@ class Streaming(object):
             joined_people=source["joined_people"],
             likes=source["likes"],
             dislikes=source["dislikes"],
-            popularity=source["popularity"],
+            popularity=source.get("popularity", None),
         )
 
     def to_dict(self) -> dict:

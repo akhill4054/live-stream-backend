@@ -10,9 +10,9 @@ from utils.exceptions import InvalidRequestError
 streamins_bp = Blueprint('streamings', __name__, url_prefix="/streamings/api/v1")
 
 
-@streamins_bp.route("/schedule-live-streaming/", methods={"POST"})
+@streamins_bp.route("/schedule-live-stream/", methods={"POST"})
 @authentication_required
-def schedule_video_streaming(user: User):
+def schedule_live_stream(user: User):
     try:
         streaming_details = json.loads(request.form["streaming_details"])
         thumbnail_file = request.files["thumbnail"]
@@ -27,9 +27,9 @@ def schedule_video_streaming(user: User):
             return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
-@streamins_bp.route("/edit-scheduled-streaming/", methods={"POST"})
+@streamins_bp.route("/edit-scheduled-live-stream/", methods={"POST"})
 @authentication_required
-def edit_scheduled_streaming(user: User):
+def edit_scheduled_live_stream(user: User):
     try:
         streaming_id = request.args["streaming_id"]
 
