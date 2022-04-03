@@ -23,6 +23,8 @@ def is_valid_username(user: User, username: str) -> tuple:
     message: str = None
 
     # TODO: Add regex to allow usernames only if they start with letters and cosist only letters, numbers, and underscore.
+    if username == None or len(username) == 0:
+        message = "Please provide a username."
     if len(username) < 5:
         message = "Username must be at least 5 characters long."
     elif len(username) > 12:
