@@ -30,7 +30,7 @@ def authenticate_user():
             pic_url = decoded_token.get("picture", None)
             phone = decoded_token.get("phone_number", None)
 
-            user = User(uid=uid, name=name, email=email, phone=phone, pic_url=pic_url)
+            user = User(uid=uid, name=name, email=email, phone=phone)
 
             # Create user.
             db.collection(u"users").document(uid).set(user.to_dict())
