@@ -8,26 +8,55 @@ from flaskr.db import db
 index_bp = Blueprint('home', __name__, url_prefix="/home/api/v1")
 
 
-@index_bp.route("/search-live-streams/", methods={"GET"})
-def search_live_streams():
-    # TODO: Implement search bu query + filters.
-    # search_query = request.args.get("query", None)
+@index_bp.route("/get-home-data/", methods={"GET"})
+def get_home_data():
     after = request.args.get("after", None)
     count = request.args.get("count", None)
-    count = int(count) if count else 10
-    
+
     streamings_ref = db.collection(u"streamings")
     query = streamings_ref
 
     if after:
         start_doc_snapshot = streamings_ref.document(after).get()
-        query = query.order_by(u"title").start_after(start_doc_snapshot)
+        query = query.start_after(start_doc_snapshot)
 
     query = query.limit(count)
 
     streaming_docs = query.stream()
     searched_live_streams = [create_live_stream_card(doc) for doc in streaming_docs]
 
-    return jsonify({
-        "live_streams": searched_live_streams,
-    }), status.HTTP_200_OK
+    return jsonify({"live_streams": searched_live_streams}), status.HTTP_200_OK
+
+
+@index_bp.route("/search-live-streams/", methods={"GET"})
+def search_live_streams():
+    search_query = request.args.get("query", None)
+    after = request.args.get("after", None)
+    count = request.args.get("count", None)
+    count = int(count) if count else 10
+    
+    is_live = request.args.get("is_live", None)
+    is_popular = request.args.get("is_popular", None)
+
+    streamings_ref = db.collection(u"streamings")
+    query = streamings_ref
+
+    if after:
+        start_doc_snapshot = streamings_ref.document(after).get()
+        query = query.start_after(start_doc_snapshot)
+
+    # if search_query != None and len(search_query) > 0:
+    #     query = (query.where(u"title", u">=", search_query)
+    #                 .where(u"title", u"<", search_query)
+    #             )
+    if is_live:
+        query = query.where(u"is_live", u"==", is_live)
+    if is_popular == True:
+        query = query.where(u"is_popular", u">=", 0.8)
+
+    query = query.limit(count)
+
+    streaming_docs = query.stream()
+    searched_live_streams = [create_live_stream_card(doc) for doc in streaming_docs]
+
+    return jsonify({"live_streams": searched_live_streams}), status.HTTP_200_OK

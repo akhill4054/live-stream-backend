@@ -2,15 +2,14 @@ from werkzeug.datastructures import FileStorage
 
 from flaskr.configs import ALLOWED_IMAGE_EXTENSIONS
 from flaskr.storage import bucket
-from utils.exceptions import InvalidRequestError
+from utils.response_helpers import get_invalid_request_response
 
 
 def upload_image(image_file: FileStorage, path_without_extension: str) -> str:
     image_file_extension = image_file.filename.split(".")[1]
 
     if not image_file_extension.upper() in ALLOWED_IMAGE_EXTENSIONS:
-        raise InvalidRequestError(
-            message=f"Image type {image_file_extension.upper()} is not allowed.")
+        return get_invalid_request_response(message=f"Image type {image_file_extension.upper()} is not allowed.")
 
     thumbnail_blob = bucket.blob(f"{path_without_extension}.{image_file_extension}")
     thumbnail_blob.upload_from_file(image_file)

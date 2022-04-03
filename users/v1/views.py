@@ -9,8 +9,8 @@ from users.utils.profile_helpers import (
     is_valid_phone_number
 )
 from flaskr.db import db
-from flaskr.storage import bucket
 from utils.exceptions import InvalidRequestError
+from utils.helpers import upload_image
 
 
 users_bp = Blueprint("users", __name__, url_prefix="/users/api/v1")
@@ -19,7 +19,7 @@ users_bp = Blueprint("users", __name__, url_prefix="/users/api/v1")
 @users_bp.route("/update-user-profile/", methods={"POST"})
 @authentication_required
 def update_user_profile(user: User):
-    def is_null_or_empty(s: str): return s == None or len(s) == 0
+    def is_null_or_empty(s: str) -> bool: return s == None or len(s) == 0
 
     try:
         user_profile_data = json.loads(request.form["user_profile"])
@@ -81,17 +81,9 @@ def update_user_profile(user: User):
         else:
             return jsonify({"message": "Please provide your age."})
 
-        profile_pic_file = request.files.get("profile_pic")
+        profile_pic_file = request.files.get("profile_pic", None)
         if profile_pic_file:
-            pic_file_extension = profile_pic_file.filename.split(".")[1]
-            if not pic_file_extension.upper() in ALLOWED_IMAGE_EXTENSIONS:
-                raise InvalidRequestError(message=f"Image type {pic_file_extension.upper()} is not allowed.")
-            else:
-                profile_pic_blob = bucket.blob(f"profile_pics/{user.uid}.{pic_file_extension}")
-                profile_pic_blob.upload_from_file(profile_pic_file)
-                profile_pic_blob.make_public()
-                # Set pic url to profile.
-                user_profile.pic_url = profile_pic_blob.public_url
+            user_profile.pic_url = upload_image(profile_pic_file, f"profile_pics/{user.uid}")
 
         # Fields that the user is allowed to remove/make null.
         user_profile.sex = user_profile_data.get("sex", None)
