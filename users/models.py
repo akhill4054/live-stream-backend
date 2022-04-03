@@ -27,11 +27,12 @@ class User(object):
 
 
 class UserProfile(object):
-    def __init__(self, pic_url=None, age=None, sex=None, bio=None) -> None:
+    def __init__(self, pic_url=None, age=None, sex=None, bio=None, followers_count=0) -> None:
         self.pic_url = pic_url
         self.age = age
         self.sex = sex
         self.bio = bio
+        self.followers_count = followers_count
 
     @staticmethod
     def from_dict(source):
@@ -40,6 +41,7 @@ class UserProfile(object):
             age=source.get("age", None),
             sex=source.get("sex", None),
             bio=source.get("bio", None),
+            followers_count=source.get("followers_count", 0),
         )
 
     def to_dict(self) -> dict:
@@ -48,6 +50,7 @@ class UserProfile(object):
             "age": self.age,
             "sex": self.sex,
             "bio": self.bio,
+            "followers_count": self.followers_count,
         }
 
 

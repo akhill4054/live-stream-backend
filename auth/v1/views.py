@@ -8,7 +8,7 @@ from flaskr.db import db
 from users.models import User
 
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/api/v1/auth")
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth/api/v1")
 
 
 @auth_bp.route("/authenticate-user/", methods={"POST"})

@@ -16,6 +16,21 @@ from utils.helpers import upload_image
 users_bp = Blueprint("users", __name__, url_prefix="/users/api/v1")
 
 
+@users_bp.route("/get-user-profile/", methods={"GET"})
+@authentication_required
+def get_user_profile(user: User):
+    user_profile_doc_ref = db.collection(u"user_profiles").document(user.uid).get()
+
+    user_profile_data = None
+
+    if user_profile_doc_ref.exists:
+        user_profile_data = {}
+        user_profile_data.update(user.to_dict())
+        user_profile_data.update(user_profile_doc_ref.to_dict())
+    
+    return jsonify({"user_profile": user_profile_data}), status.HTTP_200_OK
+
+
 @users_bp.route("/update-user-profile/", methods={"POST"})
 @authentication_required
 def update_user_profile(user: User):
@@ -95,8 +110,7 @@ def update_user_profile(user: User):
         # Save user.
         db.collection(u"users").document(user.uid).set(user.to_dict())
         # Save user profile.
-        db.collection(u"user_profiles").document(
-            user.uid).set(user_profile.to_dict())
+        db.collection(u"user_profiles").document(user.uid).set(user_profile.to_dict())
 
         response_profile_data = user.to_dict()
         response_profile_data.update(user_profile.to_dict())

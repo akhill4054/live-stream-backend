@@ -8,8 +8,9 @@ from flask import Flask
 
 
 # Init firebase-admin.
-firebase_app_credential = credentials.Certificate(json.loads(base64.b64decode(os.environ["GOOGLE_APPLICATION_CREDS_BASE64"])))
-default_app = firebase_admin.initialize_app(credential=firebase_app_credential)
+if not firebase_admin._apps:
+    firebase_app_credential = credentials.Certificate(json.loads(base64.b64decode(os.environ["GOOGLE_APPLICATION_CREDS_BASE64"])))
+    default_app = firebase_admin.initialize_app(credential=firebase_app_credential)
 
 
 # create and configure the app
