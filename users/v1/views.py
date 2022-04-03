@@ -1,3 +1,4 @@
+from os import stat
 from flask_api import status
 from flask import Blueprint, jsonify, request, json
 
@@ -11,6 +12,7 @@ from users.utils.profile_helpers import (
 from flaskr.db import db
 from utils.exceptions import InvalidRequestError
 from utils.helpers import upload_image
+from utils.response_helpers import get_invalid_request_response
 
 
 users_bp = Blueprint("users", __name__, url_prefix="/users/api/v1")
@@ -41,7 +43,9 @@ def update_user_profile(user: User):
 
         email = user_profile_data["email"]
 
-        if is_valid_email(email):
+        if is_null_or_empty(email):
+            return get_invalid_request_response(message="Email cannot be empty.")
+        elif is_valid_email(email):
             if user.email != email:
                 if not is_email_already_exists(email):
                     user.email = email
@@ -52,7 +56,9 @@ def update_user_profile(user: User):
 
         username = user_profile_data["username"]
 
-        if user.username != username:
+        if not is_valid_username(username):
+            return get_invalid_request_response(message=f"Provided username is not valid.")
+        elif user.username != username:
             if not is_username_already_exists(username):
                 user.username = username
             else:
@@ -92,9 +98,9 @@ def update_user_profile(user: User):
             if age >= 12:
                 user_profile.age = age
             else:
-                return jsonify({"message": "You must be at least 12 years old to use this service."})
+                return jsonify({"message": "You must be at least 12 years old to use this service."}), status.HTTP_400_BAD_REQUEST
         else:
-            return jsonify({"message": "Please provide your age."})
+            return jsonify({"message": "Please provide your age."}), status.HTTP_400_BAD_REQUEST
 
         profile_pic_file = request.files.get("profile_pic", None)
         if profile_pic_file:
