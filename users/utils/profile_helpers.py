@@ -1,6 +1,7 @@
 import re
 
 from flaskr.db import db
+from users.models import User
 
 
 def is_username_already_exists(phone: str) -> bool:
@@ -15,6 +16,24 @@ def is_valid_phone_number(phone: str) -> bool:
         return False
     else:
         return True
+
+
+def is_valid_username(user: User, username: str) -> tuple:
+    is_valid: bool = False
+    message: str = None
+
+    # TODO: Add regex to allow usernames only if they start with letters and cosist only letters, numbers, and underscore.
+    if len(username) < 5:
+        message = "Username must be at least 5 characters long."
+    elif len(username) > 12:
+        message = "Username must be at most 12 charcters long."
+    elif user.username != username and is_username_already_exists(username):
+        message = f"Username '{username}' already exists, please pick a different username."
+    else:
+        is_valid = True
+        message = f"'{username}' is good to go!"
+
+    return (is_valid, message)
 
 
 def is_valid_email(email: str) -> bool:

@@ -7,7 +7,7 @@ from flaskr.configs import ALLOWED_IMAGE_EXTENSIONS
 from users.models import User, UserProfile
 from users.utils.profile_helpers import (
     is_username_already_exists, is_email_already_exists, is_phone_number_already_exists, is_valid_email,
-    is_valid_phone_number
+    is_valid_phone_number, is_valid_username
 )
 from flaskr.db import db
 from utils.exceptions import InvalidRequestError
@@ -55,14 +55,12 @@ def update_user_profile(user: User):
             raise InvalidRequestError(message=f"Invalid email address.")
 
         username = user_profile_data["username"]
+        username_validity = is_valid_username(user, username)
 
-        if not is_valid_username(username):
-            return get_invalid_request_response(message=f"Provided username is not valid.")
-        elif user.username != username:
-            if not is_username_already_exists(username):
-                user.username = username
-            else:
-                raise InvalidRequestError(message=f"Username {username} already exists.")
+        if not username_validity[0]:
+            return get_invalid_request_response(message=username_validity[1])
+        else:
+            user.username = username
 
         phone = user_profile_data.get("phone", None)
 
@@ -131,24 +129,12 @@ def update_user_profile(user: User):
 
 @users_bp.route("/is-valid-username/", methods={"GET"})
 @authentication_required
-def is_valid_username(user: User):
+def check_if_username_is_valid(user: User):
     username = request.args.get("username", None)
 
     if not username:
         return jsonify({"message": "Must provide a username."}), status.HTTP_500_INTERNAL_SERVER_ERROR
     else:
-        is_valid: bool = False
-        message: str = None
+        is_valid = is_valid_username(user, username)
 
-        # TODO: Add regex to allow usernames only if they start with letters and cosist only letters, numbers, and underscore. 
-        if len(username) < 5:
-            message = "Username must be at least 5 characters long."
-        elif len(username) > 12:
-            message = "Username must be at most 12 charcters long."
-        elif user.username != username and is_username_already_exists(username):
-            message = f"Username '{username}' already exists, please pick a different username."
-        else:
-            is_valid = True
-            message = f"'{username}' is good to go!"
-
-        return jsonify({"is_valid": is_valid, "message": message}), status.HTTP_200_OK
+        return jsonify({"is_valid": is_valid[0], "message": is_valid[1]}), status.HTTP_200_OK
