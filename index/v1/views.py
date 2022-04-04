@@ -8,7 +8,7 @@ from flaskr.db import db
 index_bp = Blueprint('home', __name__, url_prefix="/home/api/v1")
 
 
-@index_bp.route("/get-home-data/", methods={"GET"})
+@index_bp.route("/get-recommended-live-streams/", methods={"GET"})
 def get_home_data():
     after = request.args.get("after", None)
     count = request.args.get("count", None)
@@ -25,7 +25,7 @@ def get_home_data():
     streaming_docs = query.stream()
     searched_live_streams = [create_live_stream_card(doc) for doc in streaming_docs]
 
-    return jsonify({"live_streams": searched_live_streams}), status.HTTP_200_OK
+    return jsonify(searched_live_streams), status.HTTP_200_OK
 
 
 @index_bp.route("/search-live-streams/", methods={"GET"})
@@ -59,4 +59,4 @@ def search_live_streams():
     streaming_docs = query.stream()
     searched_live_streams = [create_live_stream_card(doc) for doc in streaming_docs]
 
-    return jsonify({"live_streams": searched_live_streams}), status.HTTP_200_OK
+    return jsonify(searched_live_streams), status.HTTP_200_OK
