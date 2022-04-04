@@ -12,6 +12,7 @@ from users.utils.profile_helpers import (
 )
 from flaskr.db import db
 from flaskr.storage import bucket
+from utils.datetime_helpers import get_utc_timestamp
 from utils.exceptions import InvalidRequestError
 from utils.helpers import upload_image
 from utils.response_helpers import get_invalid_request_response
@@ -110,7 +111,7 @@ def update_user_profile(user: User):
                     bucket.blob(user_profile.pic_file_path).delete()
                 except:
                     pass
-            upload_result = upload_image(profile_pic_file, f"profile_pics/{user.uid}-{datetime.datetime.utcnow().timestamp()}")
+            upload_result = upload_image(profile_pic_file, f"profile_pics/{user.uid}-{get_utc_timestamp()}")
             user_profile.pic_file_path = upload_result[0]
             user_profile.pic_url = upload_result[1]
 

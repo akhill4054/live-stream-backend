@@ -1,10 +1,12 @@
 from datetime import datetime
 from flask import Blueprint, jsonify, request, json
 from flask_api import status
+from pytz import timezone
 
 from auth.decorators import authentication_required
 from streamings.utils.helpers import save_scheduled_streaming
 from users.models import User
+from utils.datetime_helpers import get_utc_timestamp
 
 
 streamins_bp = Blueprint('streamings', __name__, url_prefix="/streamings/api/v1")
@@ -42,4 +44,4 @@ def edit_scheduled_live_stream(user: User):
 
 @streamins_bp.route("/get-server-timestamp/", methods={"GET"})
 def get_server_timestamp():
-    return {"s_timestamp": datetime.utcnow().timestamp()}
+    return {"s_timestamp": get_utc_timestamp()}
