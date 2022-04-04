@@ -1,8 +1,7 @@
-from datetime import datetime
-from pytz import timezone
+from datetime import datetime, timezone
 
 
 def get_utc_timestamp():
-    dt = datetime.datetime.now(timezone.utc)
-    utc_time = dt.replace(tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc)
+    utc_time = now.replace(tzinfo=timezone.utc)
     return utc_time.timestamp()
