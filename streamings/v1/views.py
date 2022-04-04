@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, jsonify, request, json
 from flask_api import status
 
@@ -37,3 +38,8 @@ def edit_scheduled_live_stream(user: User):
         return jsonify({"message": "Streaming modified."}), status.HTTP_200_OK
     except BaseException as e:
         return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+@streamins_bp.route("/get-server-timestamp/", methods={"GET"})
+def get_server_timestamp():
+    return {"s_timestamp": datetime.utcnow().timestamp()}

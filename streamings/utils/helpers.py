@@ -30,7 +30,8 @@ def save_scheduled_streaming(
         desc=streaming_details["desc"],
         streamer_uid=user.uid,
         tags=streaming_details.get("tags", None),
-        custom_tags=streaming_details.get("custom_tags", None),
+        # TODO: Parse and save custom tags.
+        # custom_tags=streaming_details.get("custom_tags", None),
         scheduled_datetime=scheduled_timestamp,
     )
     
