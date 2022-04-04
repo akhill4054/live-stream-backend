@@ -47,7 +47,9 @@ def save_scheduled_streaming(
     
     if thumbnail_image_file:
         # Upload thumbnail image.
-        streaming.thumbnail = upload_image(thumbnail_image_file, f"streaming-thumbanails/{streaming_doc_id}")
+        upload_result = upload_image(thumbnail_image_file, f"streaming-thumbanails/{streaming_doc_id}-{datetime.utcnow().timestamp()}")
+        streaming.thumbnail_file_path = upload_result[0]
+        streaming.thumbnail = upload_result[1]
     elif is_edit:
         streaming.thumbnail = streaming_doc["thumbnail"]
     else:

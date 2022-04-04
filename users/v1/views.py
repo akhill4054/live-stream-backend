@@ -1,3 +1,4 @@
+import datetime
 from os import stat
 from flask_api import status
 from flask import Blueprint, jsonify, request, json
@@ -6,10 +7,11 @@ from auth.decorators import authentication_required
 from flaskr.configs import ALLOWED_IMAGE_EXTENSIONS
 from users.models import User, UserProfile
 from users.utils.profile_helpers import (
-    is_username_already_exists, is_email_already_exists, is_phone_number_already_exists, is_valid_email,
+    is_email_already_exists, is_phone_number_already_exists, is_valid_email,
     is_valid_phone_number, is_valid_username
 )
 from flaskr.db import db
+from flaskr.storage import bucket
 from utils.exceptions import InvalidRequestError
 from utils.helpers import upload_image
 from utils.response_helpers import get_invalid_request_response
@@ -102,7 +104,15 @@ def update_user_profile(user: User):
 
         profile_pic_file = request.files.get("profile_pic", None)
         if profile_pic_file:
-            user_profile.pic_url = upload_image(profile_pic_file, f"profile_pics/{user.uid}")
+            if user_profile.pic_file_path:
+                try:
+                    # Delete old file.
+                    bucket.blob(user_profile.pic_file_path).delete()
+                except:
+                    pass
+            upload_result = upload_image(profile_pic_file, f"profile_pics/{user.uid}-{datetime.datetime.utcnow().timestamp()}")
+            user_profile.pic_file_path = upload_result[0]
+            user_profile.pic_url = upload_result[1]
 
         # Fields that the user is allowed to remove/make null.
         user_profile.sex = user_profile_data.get("sex", None)

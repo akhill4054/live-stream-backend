@@ -27,8 +27,9 @@ class User(object):
 
 
 class UserProfile(object):
-    def __init__(self, pic_url=None, age=None, sex=None, bio=None, followers_count=0) -> None:
+    def __init__(self, pic_url=None, age=None, sex=None, bio=None, followers_count=0, pic_file_path: str = None) -> None:
         self.pic_url = pic_url
+        self.pic_file_path = pic_file_path
         self.age = age
         self.sex = sex
         self.bio = bio
@@ -38,6 +39,7 @@ class UserProfile(object):
     def from_dict(source):
         return UserProfile(
             pic_url=source.get("pic_url", None),
+            pic_file_path=source.get("pic_file_path", None),
             age=source.get("age", None),
             sex=source.get("sex", None),
             bio=source.get("bio", None),
@@ -47,6 +49,7 @@ class UserProfile(object):
     def to_dict(self) -> dict:
         return {
             "pic_url": self.pic_url,
+            "pic_file_path": self.pic_file_path,
             "age": self.age,
             "sex": self.sex,
             "bio": self.bio,
