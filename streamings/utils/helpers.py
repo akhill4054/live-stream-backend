@@ -4,6 +4,7 @@ from streamings.models import Streaming
 from werkzeug.datastructures import FileStorage
 
 from users.models import User
+from utils.datetime_helpers import get_utc_timestamp
 from utils.exceptions import InvalidRequestError
 from flaskr.db import db
 from utils.helpers import upload_image
@@ -13,25 +14,36 @@ def save_scheduled_streaming(
     user: User, 
     streaming_details: dict, 
     thumbnail_image_file: FileStorage, 
-    streaming_doc_id: str = None
+    streaming_doc_id: str = None,
+    is_immedieate_scheduling: bool = False
 ):
-    current_datetime = datetime.utcnow()
-    scheduled_timestamp = streaming_details["scheduled_timestamp"]
+    scheduled_timestamp = streaming_details.get("scheduled_timestamp", None)
 
     is_edit = streaming_doc_id != None
 
-    if scheduled_timestamp < current_datetime.timestamp():
+    if is_immedieate_scheduling:
+        scheduled_timestamp = get_utc_timestamp()
+    elif scheduled_timestamp == None:
+        raise InvalidRequestError(message="Must provide a timestamp to schedule the live stream.")
+    elif scheduled_timestamp < get_utc_timestamp():
         raise InvalidRequestError(
             message="Can't edit a streaming which has already started/ended." if is_edit else "Can't schedule a streaming in the past."
         )
+
+    custom_tags = streaming_details.get("custom_tags", None)
+    if custom_tags:
+        custom_tags = custom_tags.split(",")
+        temp = []
+        for tag in custom_tags:
+            if len(tag) > 0: temp.append(tag.strip())
+        custom_tags = temp
 
     streaming = Streaming(
         title=streaming_details["title"],
         desc=streaming_details["desc"],
         streamer_uid=user.uid,
         tags=streaming_details.get("tags", None),
-        # TODO: Parse and save custom tags.
-        # custom_tags=streaming_details.get("custom_tags", None),
+        custom_tags=custom_tags,
         scheduled_datetime=scheduled_timestamp,
     )
     

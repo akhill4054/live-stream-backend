@@ -9,7 +9,7 @@ index_bp = Blueprint('home', __name__, url_prefix="/home/api/v1")
 
 
 @index_bp.route("/get-recommended-live-streams/", methods={"GET"})
-def get_home_data():
+def get_recommended_live_streams():
     after = request.args.get("after", None)
     count = request.args.get("count", None)
 
