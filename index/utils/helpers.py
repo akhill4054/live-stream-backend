@@ -18,8 +18,6 @@ def create_live_stream_card(streaming_doc) -> dict:
     if short_bio and len(short_bio) > 120:
         short_bio = short_bio[0:120]
 
-    streaming_obj_as_dict["id"] = streaming_doc.id
-
     streaming_obj_as_dict["streamer"] = {
         "name": streamer_user["name"],
         "username": streamer_user["username"],

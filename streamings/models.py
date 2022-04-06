@@ -2,10 +2,11 @@ from datetime import datetime
 
 
 class Streaming(object):
-    def __init__(self, title: str, desc: str, streamer_uid: str, scheduled_datetime: datetime=None,
+    def __init__(self, id: str, title: str, desc: str, streamer_uid: str, scheduled_datetime: datetime=None,
                  tags: list[str] = [], thumbnail: str = None, thumbnail_file_path: str = None, custom_tags: list[str] = [],
                  views: int = 0, is_live: bool = False, joined_people: int = 0, likes: int = 0,
                  dislikes: int = 0, popularity: int = 0) -> None:
+        self.id = id
         self.title = title
         self.desc = desc
         self.thumbnail_file_path = thumbnail_file_path
@@ -24,6 +25,7 @@ class Streaming(object):
     @staticmethod
     def from_dict(source: dict):
         return Streaming(
+            id=source["id"],
             title=source["title"],
             desc=source["desc"],
             thumbnail=source["thumbnail"],
@@ -42,6 +44,7 @@ class Streaming(object):
 
     def to_dict(self) -> dict:
         return {
+            "id": self.id,
             "title": self.title,
             "desc": self.desc,
             "thumbnail": self.thumbnail,

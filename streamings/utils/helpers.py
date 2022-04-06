@@ -20,6 +20,16 @@ def save_scheduled_streaming(
     scheduled_timestamp = streaming_details.get("scheduled_timestamp", None)
 
     is_edit = streaming_doc_id != None
+    
+    if not streaming_doc_id:
+        streaming_doc_id = db.collection(u"streamings").document().id
+    else:
+        streaming_doc = db.collection(u"streamings").document(streaming_doc_id).get()
+        if streaming_doc.exists:
+            streaming_doc = streaming_doc.to_dict()
+        else:
+            raise InvalidRequestError(message=f"Streaming with id {streaming_doc_id} does not exist.")
+
 
     if is_immedieate_scheduling:
         scheduled_timestamp = get_utc_timestamp()
@@ -41,6 +51,7 @@ def save_scheduled_streaming(
         custom_tags = []
 
     streaming = Streaming(
+        id=streaming_doc_id,
         title=streaming_details["title"],
         desc=streaming_details["desc"],
         streamer_uid=user.uid,
@@ -51,15 +62,6 @@ def save_scheduled_streaming(
     )
     
     streaming_doc = None
-
-    if not streaming_doc_id:
-        streaming_doc_id = db.collection(u"streamings").document().id
-    else:
-        streaming_doc = db.collection(u"streamings").document(streaming_doc_id).get()
-        if streaming_doc.exists:
-            streaming_doc = streaming_doc.to_dict()
-        else:
-            raise InvalidRequestError(message=f"Streaming with id {streaming_doc_id} does not exist.")
     
     if thumbnail_image_file:
         # Upload thumbnail image.
