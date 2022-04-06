@@ -1,8 +1,9 @@
 import hashlib
+from random import randrange
 from flask import Blueprint, jsonify, request, json
 from flask_api import status
 
-from auth.decorators import authentication_required
+from auth.decorators import authenticate_if_present, authentication_required
 from rtc.src.RtcTokenBuilder import Role_Attendee, Role_Publisher
 from streamings.models import Streaming
 from streamings.utils.helpers import save_scheduled_streaming
@@ -44,7 +45,7 @@ def start_live_stream(user: User):
 
 
 @streamins_bp.route("/watch-live-stream/", methods={"GET"})
-@authentication_required
+@authenticate_if_present
 def watch_live_stream_details(user: User):
     try:
         streaming_id = request.args["streaming_id"]
@@ -52,7 +53,7 @@ def watch_live_stream_details(user: User):
         streaming = Streaming.from_dict(streaming_doc.to_dict())
         
         ag_creds = None
-        is_streamer = user.uid == streaming.streamer_uid
+        is_streamer = user != None and user.uid == streaming.streamer_uid
 
         streaming.is_live = streaming.scheduled_datetime <= get_utc_timestamp()
         
@@ -60,9 +61,17 @@ def watch_live_stream_details(user: User):
             if not is_streamer:
                 streaming.views += 1
 
-            uid_md5 = hashlib.md5()
-            uid_md5.update(user.uid.encode("utf-8"))
-            uid = int(str(int(uid_md5.hexdigest(), 16))[1:10])
+                # Update view.
+                db.collection(u"streamings").document(streaming_id).set({
+                    "views": streaming.views,
+                }, merge = True)
+
+            if user:
+                uid_md5 = hashlib.md5()
+                uid_md5.update(user.uid.encode("utf-8"))
+                uid = int(str(int(uid_md5.hexdigest(), 16))[1:10])
+            else:
+                uid = streaming.views
 
             user_role = Role_Publisher if is_streamer else Role_Attendee
             channel_name = streaming_doc.id
