@@ -37,9 +37,12 @@ def start_live_stream(user: User):
         streaming_details = json.loads(request.form["streaming_details"])
         thumbnail_file = request.files["thumbnail"]
 
-        save_scheduled_streaming(user, streaming_details, thumbnail_file, is_immedieate_scheduling=True)
+        streaming_details = save_scheduled_streaming(user, streaming_details, thumbnail_file, is_immedieate_scheduling=True)
 
-        return jsonify({"message": "Streaming scheduled."}), status.HTTP_200_OK
+        return jsonify({
+            "message": "Streaming satarted.", 
+            "streaming_details": streaming_details}
+            ), status.HTTP_200_OK
     except BaseException as e:
         return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
 

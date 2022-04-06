@@ -16,7 +16,7 @@ def save_scheduled_streaming(
     thumbnail_image_file: FileStorage, 
     streaming_doc_id: str = None,
     is_immedieate_scheduling: bool = False
-):
+) -> dict:
     scheduled_timestamp = streaming_details.get("scheduled_timestamp", None)
 
     is_edit = streaming_doc_id != None
@@ -68,5 +68,10 @@ def save_scheduled_streaming(
     else:
         raise InvalidRequestError(message="Must provide a thumbnail image file!")
 
+    streaming_as_dict = streaming.to_dict()
+    streaming_as_dict["id"] = streaming_doc_id
+
     # Save scheduled streaming.
     db.collection(u"streamings").document(streaming_doc_id).set(streaming.to_dict(), merge = is_edit)
+
+    return streaming_as_dict
