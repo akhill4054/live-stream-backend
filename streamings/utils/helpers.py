@@ -31,12 +31,14 @@ def save_scheduled_streaming(
         )
 
     custom_tags = streaming_details.get("custom_tags", None)
-    if custom_tags:
+    if custom_tags and len(custom_tags) > 0:
         custom_tags = custom_tags.split(",")
         temp = []
         for tag in custom_tags:
             if len(tag) > 0: temp.append(tag.strip())
         custom_tags = temp
+    else:
+        custom_tags = []
 
     streaming = Streaming(
         title=streaming_details["title"],
@@ -45,6 +47,7 @@ def save_scheduled_streaming(
         tags=streaming_details.get("tags", None),
         custom_tags=custom_tags,
         scheduled_datetime=scheduled_timestamp,
+        is_live=scheduled_timestamp <= get_utc_timestamp(),
     )
     
     streaming_doc = None
@@ -72,6 +75,6 @@ def save_scheduled_streaming(
     streaming_as_dict["id"] = streaming_doc_id
 
     # Save scheduled streaming.
-    db.collection(u"streamings").document(streaming_doc_id).set(streaming.to_dict(), merge = is_edit)
+    db.collection(u"streamings").document(streaming_doc_id).set(streaming_as_dict, merge = is_edit)
 
     return streaming_as_dict
