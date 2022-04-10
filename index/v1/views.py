@@ -1,15 +1,18 @@
 from flask import Blueprint, jsonify, request
 from flask_api import status
+from auth.decorators import authenticate_if_present
 from index.utils.helpers import create_live_stream_card
 
 from flaskr.db import db
+from users.models import User
 
 
 index_bp = Blueprint('home', __name__, url_prefix="/home/api/v1")
 
 
 @index_bp.route("/get-recommended-live-streams/", methods={"GET"})
-def get_recommended_live_streams():
+@authenticate_if_present
+def get_recommended_live_streams(user: User):
     after = request.args.get("after", None)
     count = request.args.get("count", None)
 
@@ -23,13 +26,14 @@ def get_recommended_live_streams():
     query = query.limit(count)
 
     streaming_docs = query.stream()
-    searched_live_streams = [create_live_stream_card(doc) for doc in streaming_docs]
+    searched_live_streams = [create_live_stream_card(user, doc) for doc in streaming_docs]
 
     return jsonify(searched_live_streams), status.HTTP_200_OK
 
 
 @index_bp.route("/search-live-streams/", methods={"GET"})
-def search_live_streams():
+@authenticate_if_present
+def search_live_streams(user: User):
     search_query = request.args.get("query", None)
     after = request.args.get("after", None)
     count = request.args.get("count", None)
@@ -57,6 +61,6 @@ def search_live_streams():
     query = query.limit(count)
 
     streaming_docs = query.stream()
-    searched_live_streams = [create_live_stream_card(doc) for doc in streaming_docs]
+    searched_live_streams = [create_live_stream_card(user, doc) for doc in streaming_docs]
 
     return jsonify(searched_live_streams), status.HTTP_200_OK

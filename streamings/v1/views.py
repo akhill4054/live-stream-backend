@@ -4,6 +4,7 @@ from flask import Blueprint, jsonify, request, json
 from flask_api import status
 
 from auth.decorators import authenticate_if_present, authentication_required
+from index.utils.helpers import create_live_stream_card
 from rtc.src.RtcTokenBuilder import Role_Attendee, Role_Publisher
 from streamings.models import Streaming
 from streamings.utils.helpers import save_scheduled_streaming
@@ -53,20 +54,18 @@ def watch_live_stream_details(user: User):
     try:
         streaming_id = request.args["streaming_id"]
         streaming_doc = db.collection(u"streamings").document(streaming_id).get()
-        streaming = Streaming.from_dict(streaming_doc.to_dict())
+        streaming = create_live_stream_card(user, streaming_doc)
         
         ag_creds = None
-        is_streamer = user != None and user.uid == streaming.streamer_uid
-
-        streaming.is_live = streaming.scheduled_datetime <= get_utc_timestamp()
+        is_streamer = user != None and user.uid == streaming["streamer_uid"]
         
-        if streaming.is_live:
+        if streaming["is_live"]:
             if not is_streamer:
-                streaming.views += 1
+                streaming["views"] += 1
 
                 # Update view.
                 db.collection(u"streamings").document(streaming_id).set({
-                    "views": streaming.views,
+                    "views": streaming["views"],
                 }, merge = True)
 
             if user:
@@ -74,7 +73,7 @@ def watch_live_stream_details(user: User):
                 uid_md5.update(user.uid.encode("utf-8"))
                 uid = int(str(int(uid_md5.hexdigest(), 16))[1:10])
             else:
-                uid = streaming.views
+                uid = streaming["views"]
 
             user_role = Role_Publisher if is_streamer else Role_Attendee
             channel_name = streaming_doc.id
@@ -87,7 +86,7 @@ def watch_live_stream_details(user: User):
             }
 
         response_data = {
-            "streaming_details": streaming.to_dict(),
+            "streaming_details": streaming,
             "is_streamer": is_streamer,
             "ag_creds": ag_creds,
         }
