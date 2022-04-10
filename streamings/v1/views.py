@@ -10,7 +10,7 @@ from streamings.utils.helpers import save_scheduled_streaming
 from users.models import User
 from utils.datetime_helpers import get_utc_timestamp
 from flaskr.db import db
-from rtc.rtc_token import generate_rtc_token
+from rtc.rtc_token import generate_rtc_token, generate_rtm_token
 
 
 streamins_bp = Blueprint('streamings', __name__, url_prefix="/streamings/api/v1")
@@ -83,6 +83,7 @@ def watch_live_stream_details(user: User):
                 "channel_name": channel_name,
                 "ag_uid": uid,
                 "rtc_token": generate_rtc_token(uid=uid, channel_name=channel_name, role=user_role),
+                "rtm_token": generate_rtm_token(uid=uid),
             }
 
         response_data = {
@@ -92,6 +93,102 @@ def watch_live_stream_details(user: User):
         }
 
         return jsonify(response_data), status.HTTP_200_OK
+    except BaseException as e:
+        return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+@streamins_bp.route("/like-live-stream/", methods={"POST"})
+@authentication_required
+def like_live_stream(user: User):
+    try:
+        streaming_id = request.args["streaming_id"]
+        streaming_doc_ref = db.collection(u"streamings").document(streaming_id)
+        streaming_doc_as_dict = streaming_doc_ref.get().to_dict()
+
+        liked_users_ref = streaming_doc_ref.collection(u"liked_users")
+        liked_user_doc_ref = liked_users_ref.document(user.uid)
+        liked_user_doc = liked_user_doc_ref.get()
+
+        is_liked = False
+        updated_likes_count = streaming_doc_as_dict["likes"]
+        updated_dislikes_count = streaming_doc_as_dict["dislikes"]
+
+        user_profile_likes_ref = db.collection(u"user_profiles").document(user.uid).collection("liked_streamings")
+
+        if not liked_user_doc.exists:
+            streaming_doc_ref.collection(u"liked_users").document(user.uid).set({
+                "uid": user.uid,
+                "username": user.username,
+            })
+            user_profile_likes_ref.document(streaming_id).set({
+                "streaming_id": streaming_id,
+                "crated_at": get_utc_timestamp(),
+            })
+            updated_likes_count += 1
+            is_liked = True
+
+            disliked_user_doc_ref = streaming_doc_ref.collection(u"disliked_users").document(user.uid)
+            disliked_user_doc = liked_user_doc_ref.get()
+
+            if disliked_user_doc.exists:
+                disliked_user_doc_ref.delete()
+                updated_dislikes_count -= 1
+        else:
+            user_profile_likes_ref.document(streaming_id).delete()
+            liked_user_doc_ref.delete()
+            updated_likes_count -= 1
+        
+        streaming_doc_ref.set({
+            "likes": updated_likes_count,
+            "dislikes": updated_dislikes_count,    
+        }, merge = True)
+
+        return jsonify({"message": "Added to likes." if is_liked else "Removed from likes."}), status.HTTP_200_OK
+    except BaseException as e:
+        return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
+
+
+@streamins_bp.route("/dislike-live-stream/", methods={"POST"})
+@authentication_required
+def dislike_live_stream(user: User):
+    try:
+        streaming_id = request.args["streaming_id"]
+        streaming_doc_ref = db.collection(u"streamings").document(streaming_id)
+        streaming_doc_as_dict = streaming_doc_ref.get().to_dict()
+
+        is_disliked = False
+        updated_likes_count = streaming_doc_as_dict["likes"]
+        updated_dislikes_count = streaming_doc_as_dict["dislikes"]
+
+        disliked_user_doc_ref = db.collection(u"streamings").document(streaming_id).collection("disliked_users").document(user.uid)
+        disliked_user_doc = disliked_user_doc_ref.get()
+
+        if not disliked_user_doc.exists:
+            streaming_doc_ref.collection(u"disliked_users").document(user.uid).set({
+                "uid": user.uid,
+                "username": user.username,
+            })
+            updated_dislikes_count += 1
+            is_disliked = True
+
+            liked_user_doc_ref = streaming_doc_ref.collection(u"liked_users").document(user.uid)
+            liked_user_doc = liked_user_doc_ref.get()
+
+            if liked_user_doc.exists:
+                user_profile_likes_ref = db.collection(u"user_profiles").document(user.uid).collection("liked_streamings")
+                user_profile_likes_ref.document(streaming_id).delete()
+                liked_user_doc_ref.delete()
+                updated_likes_count -= 1
+        else:
+            disliked_user_doc_ref.delete()
+            updated_dislikes_count -= 1
+        
+        streaming_doc_ref.set({
+            "likes": updated_dislikes_count,
+            "dislikes": updated_dislikes_count,
+        }, merge = True)
+
+        return jsonify({"message": "Disliked video." if is_disliked else "Removed from dislikes."}), status.HTTP_200_OK
     except BaseException as e:
         return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
 
