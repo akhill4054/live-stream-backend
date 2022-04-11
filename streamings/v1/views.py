@@ -142,7 +142,11 @@ def like_live_stream(user: User):
             "dislikes": updated_dislikes_count,    
         }, merge = True)
 
-        return jsonify({"message": "Added to likes." if is_liked else "Removed from likes."}), status.HTTP_200_OK
+        return jsonify({
+            "message": "Added to likes." if is_liked else "Removed from likes.",
+            "likes": updated_likes_count, 
+            "dislikes": updated_dislikes_count,
+        }), status.HTTP_200_OK
     except BaseException as e:
         return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
 
@@ -187,7 +191,11 @@ def dislike_live_stream(user: User):
             "dislikes": updated_dislikes_count,
         }, merge = True)
 
-        return jsonify({"message": "Disliked video." if is_disliked else "Removed from dislikes."}), status.HTTP_200_OK
+        return jsonify({
+            "message": "Disliked video." if is_disliked else "Removed from dislikes.",
+            "likes": updated_likes_count,
+            "dislikes": updated_dislikes_count,
+        }), status.HTTP_200_OK
     except BaseException as e:
         return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
 

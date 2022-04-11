@@ -49,11 +49,11 @@ def search_live_streams(user: User):
         start_doc_snapshot = streamings_ref.document(after).get()
         query = query.start_after(start_doc_snapshot)
 
-    # if search_query != None and len(search_query) > 0:
-    #     query = (query.where(u"title", u">=", search_query)
-    #                 .where(u"title", u"<", search_query)
-    #             )
-    if is_live:
+    if search_query != None and len(search_query) > 0:
+        query = (query.where(u"title", u">=", search_query)
+                    .where(u"title", u"<", search_query + "\uf8ff")
+                )
+    if is_live == True:
         query = query.where(u"is_live", u"==", is_live)
     if is_popular == True:
         query = query.where(u"is_popular", u">=", 0.8)
