@@ -53,7 +53,8 @@ def start_live_stream(user: User):
 def watch_live_stream_details(user: User):
     try:
         streaming_id = request.args["streaming_id"]
-        streaming_doc = db.collection(u"streamings").document(streaming_id).get()
+        streaming_doc_ref = db.collection(u"streamings").document(streaming_id)
+        streaming_doc = streaming_doc_ref.get()
         streaming = create_live_stream_card(user, streaming_doc)
         
         ag_creds = None
@@ -61,7 +62,16 @@ def watch_live_stream_details(user: User):
         
         if streaming["is_live"]:
             if not is_streamer:
-                streaming["views"] += 1
+                if user:
+                    user_in_viewed_users = streaming_doc_ref.collection(u"viewed_users").document(user.uid).get()
+                    if not user_in_viewed_users.exists:
+                        streaming_doc_ref.collection(u"viewed_users").document(user.uid).set({
+                            "uid": user.uid,
+                            "created_at": get_utc_timestamp(),
+                        })
+                        streaming["views"] += 1
+                else:
+                    streaming["views"] += 1
 
                 # Update view.
                 db.collection(u"streamings").document(streaming_id).set({
