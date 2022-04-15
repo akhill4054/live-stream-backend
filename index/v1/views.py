@@ -18,6 +18,9 @@ def get_recommended_live_streams(user: User):
     count = request.args.get("count", None)
     count = int(count) if count else 5
 
+    is_live = request.args.get("is_live", None)
+    if is_live: is_live = bool(is_live)
+
     streamings_ref = db.collection(u"streamings").order_by(
         u'created_at', direction=firestore.Query.DESCENDING)
     query = streamings_ref
@@ -25,6 +28,9 @@ def get_recommended_live_streams(user: User):
     if after:
         start_doc_snapshot = streamings_ref.document(after).get()
         query = query.start_after(start_doc_snapshot)
+
+    if is_live == True:
+        query = query.where(u"is_live", u"==", is_live)
 
     query = query.limit(count)
 
