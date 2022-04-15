@@ -43,7 +43,7 @@ def search_live_streams(user: User):
     count = int(count) if count else 5
     
     is_live = request.args.get("is_live", None)
-    is_popular = request.args.get("is_popular", None)
+    if is_live: is_live = bool(is_live)
 
     streamings_ref = db.collection(u"streamings")
     query = streamings_ref
@@ -58,8 +58,6 @@ def search_live_streams(user: User):
                 )
     if is_live == True:
         query = query.where(u"is_live", u"==", is_live)
-    if is_popular == True:
-        query = query.where(u"is_popular", u">=", 0.8)
 
     query = query.limit(count)
 
