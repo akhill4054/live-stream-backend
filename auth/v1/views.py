@@ -6,6 +6,7 @@ import jwt
 from auth.decorators import authentication_required
 from flaskr.db import db
 from users.models import User
+from utils.datetime_helpers import get_utc_timestamp
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth/api/v1")
@@ -48,4 +49,7 @@ def authenticate_user():
 @auth_bp.route("/test-authentication/", methods={"GET", "POST"})
 @authentication_required
 def test_authentication(user):
+    for doc in db.collection(u"streamings").stream():
+        db.collection(u"streamings").document(doc.id).set({"created_at": get_utc_timestamp()}, merge = True)
+
     return jsonify({"uid": user.uid}), status.HTTP_200_OK

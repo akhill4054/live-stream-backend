@@ -75,6 +75,7 @@ def save_scheduled_streaming(
 
     streaming_as_dict = streaming.to_dict()
     streaming_as_dict["id"] = streaming_doc_id
+    streaming_as_dict["created_at"] = get_utc_timestamp()
 
     # Save scheduled streaming.
     db.collection(u"streamings").document(streaming_doc_id).set(streaming_as_dict, merge = is_edit)
