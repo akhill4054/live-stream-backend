@@ -1,2 +1,4 @@
 venv/
+rtc/trtcsrc/
+rtc/trtmsrc/
 __pycache__/

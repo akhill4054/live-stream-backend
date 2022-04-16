@@ -16,7 +16,7 @@ index_bp = Blueprint('home', __name__, url_prefix="/home/api/v1")
 def get_recommended_live_streams(user: User):
     after = request.args.get("after", None)
     count = request.args.get("count", None)
-    count = int(count) if count else 5
+    count = int(count) if count else 10
 
     is_live = request.args.get("is_live", None)
     if is_live: is_live = bool(is_live)
