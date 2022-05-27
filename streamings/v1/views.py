@@ -226,6 +226,19 @@ def edit_scheduled_live_stream(user: User):
         return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+@streamins_bp.route("/end-live-stream/", methods={"POST"})
+def end_live_stream():
+    try:
+        streaming_id = request.args["streaming_id"]
+
+        # Delete live stream.
+        db.collection(u"streamings").document(streaming_id).delete()
+
+        return jsonify({"message": "Streaming deleted."}), status.HTTP_200_OK
+    except BaseException as e:
+        return jsonify({"message": str(e)}), status.HTTP_500_INTERNAL_SERVER_ERROR
+    
+
 @streamins_bp.route("/get-server-timestamp/", methods={"GET"})
 def get_server_timestamp():
     return {"s_timestamp": get_utc_timestamp()}
