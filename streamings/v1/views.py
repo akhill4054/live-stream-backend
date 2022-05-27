@@ -230,7 +230,6 @@ def edit_scheduled_live_stream(user: User):
 def end_live_stream():
     try:
         streaming_id = request.args["streaming_id"]
-
         # Delete live stream.
         db.collection(u"streamings").document(streaming_id).delete()
 
